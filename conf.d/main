@@ -30,3 +30,8 @@ chown -R www-data:www-data $XOOPS/data/caches
 chown -R www-data:www-data $XOOPS/data/data
 chown -R www-data:www-data $XOOPS/lib/modules/protector/configs/
 
+# configure apache
+a2dissite default
+a2ensite xoops
+a2enmod rewrite
+
