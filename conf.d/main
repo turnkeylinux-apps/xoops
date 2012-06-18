@@ -85,6 +85,13 @@ $MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_group_permi
 $MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_group_permission VALUES ('', '2', '$BLOCK_ID', '1', 'block_read');"
 $MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_group_permission VALUES ('', '3', '$BLOCK_ID', '1', 'block_read');"
 
+# remove hardcoded IP
+$MYSQL_BATCH --database=$DB_NAME --execute "UPDATE ${DB_PREFIX}_banner SET imageurl=\"/images/banners/xoops_flashbanner2.swf\" WHERE bid=\"1\";"
+$MYSQL_BATCH --database=$DB_NAME --execute "UPDATE ${DB_PREFIX}_banner SET imageurl=\"/images/banners/xoops_banner_2.gif\" WHERE bid=\"2\";"
+$MYSQL_BATCH --database=$DB_NAME --execute "UPDATE ${DB_PREFIX}_banner SET imageurl=\"/images/banners/banner.swf\" WHERE bid=\"3\";"
+
+sed -i "s|XOOPS_URL.*|XOOPS_URL', '');|g" $WEBROOT/mainfile.php
+
 # stop services
 /etc/init.d/mysql stop
 /etc/init.d/apache2 stop
