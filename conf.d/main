@@ -92,6 +92,10 @@ $MYSQL_BATCH --database=$DB_NAME --execute "UPDATE ${DB_PREFIX}_banner SET image
 
 sed -i "s|XOOPS_URL.*|XOOPS_URL', '');|g" $WEBROOT/mainfile.php
 
+# secure sensitive files
+chmod 440 $WEBROOT/mainfile.php
+chmod 440 $XOOPS/data/data/secure.php
+
 # stop services
 /etc/init.d/mysql stop
 /etc/init.d/apache2 stop
