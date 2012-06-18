@@ -1,0 +1,15 @@
+#!/bin/sh -ex
+
+DB_NAME=xoops
+DB_USER=xoops
+DB_PREFIX=xoops
+DB_PASS=$(mcookie)
+
+ADMIN_NAME=admin
+ADMIN_PASS=turnkey
+ADMIN_MAIL=admin@example.com
+
+SRC=/usr/local/src
+WEBROOT=/var/www/xoops
+XOOPS=/var/local/lib/xoops
+
