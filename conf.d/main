@@ -17,6 +17,7 @@ XOOPS=/var/local/lib/xoops
 tar -zxf $SRC/xoops-*.tar.gz -C $SRC
 cp -a $SRC/xoops-*/htdocs $WEBROOT
 cp -TdR $SRC/xoops-*/extras/modules $WEBROOT/modules
+cp $SRC/xoops-*/extras/mainfile.php $WEBROOT
 rm -rf $SRC/xoops-*
 chown -R root:root $WEBROOT
 chown -R www-data:www-data $WEBROOT/uploads
@@ -55,7 +56,7 @@ XLIB=$(echo $XOOPS/lib | sed "s/\//%2F/g")
 URL="http://127.0.0.1/install"
 CURL="curl -c /tmp/cookie -b /tmp/cookie"
 
-$CURL ${URL}/index.php --data "lang=english"
+$CURL ${URL}/index.php --data "xo_install_lang=english"
 $CURL ${URL}/page_start.php
 $CURL ${URL}/page_pathsettings.php --data "root=$XROOT&data=$XDATA&lib=$XLIB&URL=http%3A%2F%2F127.0.0.1"
 $CURL ${URL}/page_dbconnection.php --data "DB_TYPE=mysql&DB_HOST=localhost&DB_USER=$DB_USER&DB_PASS=$DB_PASS"
