@@ -58,15 +58,22 @@ CURL="curl -c /tmp/cookie -b /tmp/cookie"
 
 $CURL ${URL}/index.php --data "xo_install_lang=english"
 $CURL ${URL}/page_start.php
+$CURL ${URL}/page_modcheck.php
 $CURL ${URL}/page_pathsettings.php --data "root=$XROOT&data=$XDATA&lib=$XLIB&URL=http%3A%2F%2F127.0.0.1"
-$CURL ${URL}/page_dbconnection.php --data "DB_TYPE=mysql&DB_HOST=localhost&DB_USER=$DB_USER&DB_PASS=$DB_PASS"
+sleep 1
+$CURL ${URL}/page_dbconnection.php --data "DB_TYPE=mysql&DB_HOST=localhost&DB_USER=$DB_USER&DB_PASS=$DB_PASS&DB_PCONNECT=1"
+sleep 1
 $CURL ${URL}/page_dbsettings.php --data "DB_NAME=$DB_NAME&DB_PREFIX=$DB_PREFIX&DB_CHARSET=utf8&DB_COLLATION=utf8_general_ci"
+sleep 1
 $CURL ${URL}/page_configsave.php
 $CURL ${URL}/page_tablescreate.php
 $CURL ${URL}/page_siteinit.php --data "adminname=$ADMIN_NAME&adminmail=$XMAIL&adminpass=$ADMIN_PASS&adminpass2=$ADMIN_PASS&generated_pw="
+sleep 1
 $CURL ${URL}/page_tablesfill.php
-$CURL ${URL}/page_configsite.php --data "sitename=TurnKey+Xoops&slogan=&conf_ids%5B%5D=1&conf_ids%5B%5D=2&meta_keywords=xoops%2C+web+applications%2C+web+2.0%2C+sns%2C+news%2C+technology%2C+headlines%2C+linux%2C+software%2C+download%2C+downloads%2C+free%2C+community%2C+forum%2C+bulletin+board%2C+bbs%2C+php%2C+survey%2C+polls%2C+kernel%2C+comment%2C+comments%2C+portal%2C+odp%2C+open+source%2C+opensource%2C+FreeSoftware%2C+gnu%2C+gpl%2C+license%2C+Unix%2C+*nix%2C+mysql%2C+sql%2C+database%2C+databases%2C+web+site%2C+blog%2C+wiki%2C+module%2C+modules%2C+theme%2C+themes%2C+cms%2C+content+management&meta_description=XOOPS+is+a+dynamic+Object+Oriented+based+open+source+portal+script+written+in+PHP.&meta_author=XOOPS&meta_copyright=Copyright+%40+2001-2012&conf_ids%5B%5D=1&conf_ids%5B%5D=2&conf_ids%5B%5D=38&conf_ids%5B%5D=51&conf_ids%5B%5D=49&conf_ids%5B%5D=50&allow_register=1&conf_ids%5B%5D=1&conf_ids%5B%5D=2&conf_ids%5B%5D=38&conf_ids%5B%5D=51&conf_ids%5B%5D=49&conf_ids%5B%5D=50&conf_ids%5B%5D=56"
+$CURL ${URL}/page_configsite.php --data "sitename=TurnKey+XOOPS+Site&slogan=Just+Use+it%21&conf_ids%5B%5D=1&conf_ids%5B%5D=2&meta_keywords=xoops%2C+web+applications%2C+web+2.0%2C+sns%2C+news%2C+technology%2C+headlines%2C+linux%2C+software%2C+download%2C+downloads%2C+free%2C+community%2C+forum%2C+bulletin+board%2C+bbs%2C+php%2C+survey%2C+polls%2C+kernel%2C+comment%2C+comments%2C+portal%2C+odp%2C+open+source%2C+opensource%2C+FreeSoftware%2C+gnu%2C+gpl%2C+license%2C+Unix%2C+*nix%2C+mysql%2C+sql%2C+database%2C+databases%2C+web+site%2C+blog%2C+wiki%2C+module%2C+modules%2C+theme%2C+themes%2C+cms%2C+content+management&meta_description=XOOPS+is+a+dynamic+Object+Oriented+based+open+source+portal+script+written+in+PHP.&meta_author=XOOPS&meta_copyright=Copyright+%40+2001-2012&conf_ids%5B%5D=1&conf_ids%5B%5D=2&conf_ids%5B%5D=38&conf_ids%5B%5D=51&conf_ids%5B%5D=49&conf_ids%5B%5D=50&allow_register=1&conf_ids%5B%5D=1&conf_ids%5B%5D=2&conf_ids%5B%5D=38&conf_ids%5B%5D=51&conf_ids%5B%5D=49&conf_ids%5B%5D=50&conf_ids%5B%5D=56"
+sleep 1
 $CURL ${URL}/page_theme.php --data "theme_set=zetagenesis&conf_ids%5B%5D=7"
+sleep 1
 $CURL ${URL}/page_moduleinstaller.php --data "modules%5Bpm%5D=1&modules%5Bprofile%5D=1&modules%5Bprotector%5D=1"
 $CURL ${URL}/page_end.php
 
