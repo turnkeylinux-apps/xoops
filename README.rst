@@ -25,10 +25,10 @@ and on top of that:
 Credentials *(passwords set at first boot)*
 -------------------------------------------
 
--  Webmin, SSH, MySQL, phpMyAdmin: username **root**
+-  Webmin, SSH, MySQL, Adminer: username **root**
 -  XOOPS: username **admin**
 
 
 .. _XOOPS: http://xoops.org/
 .. _TurnKey Core: http://www.turnkeylinux.org/core
-.. _Adminer: http://www.phpmyadmin.net
+.. _Adminer: http://www.adminer.org
