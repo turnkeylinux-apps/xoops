@@ -9,6 +9,7 @@ Option:
 
 import sys
 import getopt
+import inithooks_cache
 import subprocess
 import hashlib
 
@@ -53,6 +54,8 @@ def main():
             "Xoops Email",
             "Enter email address for the Xoops 'admin' account.",
             "admin@example.com")
+
+    inithooks_cache.write('APP_EMAIL', email)
 
     hash = hashlib.md5(password).hexdigest()
 
