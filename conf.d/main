@@ -83,7 +83,7 @@ rm -rf $WEBROOT/install
 # create welcome block
 BLOCK_ID="13"
 DATE="1339947200"
-WELCOME='<p>Lets get you started...</p><ol><li>Log in as <b>admin</b> and visit the <a href=\"/admin.php\">administration dashboard</a> to customize your site.</li><li>When ready, delete this welcome block and create some new ones.</li></ol><p>For more information, check out the <a href=\"http://www.turnkeylinux.org/xoops\">release notes</a> and the <a href=\"http://xoops.org/modules\">online documentation</p>.'
+WELCOME='<p>Lets get you started...</p><ol><li>Log in as <b>admin</b> and visit the <a href=\"/admin.php\">administration dashboard</a> to customize your site.</li><li>When ready, delete this welcome block and create some new ones.</li></ol><p>For more information, check out the <a href=\"https://www.turnkeylinux.org/xoops\">release notes</a> and the <a href=\"http://xoops.org/modules\">online documentation</p>.'
 
 $MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_newblocks VALUES ('$BLOCK_ID', '0', '0', '', 'Custom Block \(HTML\)', 'Welcome to TurnKey Xoops', '$WELCOME', '5', '0', '1', 'C', 'H', '1', '', '', '', '', '', '0', '$DATE');"
 
