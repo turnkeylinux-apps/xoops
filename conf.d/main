@@ -14,11 +14,11 @@ WEBROOT=/var/www/xoops
 XOOPS=/var/local/lib/xoops
 
 # unpack and configure
-tar -zxf $SRC/xoops-*.tar.gz -C $SRC
-cp -a $SRC/xoops-*/htdocs $WEBROOT
-cp -TdR $SRC/xoops-*/extras/modules $WEBROOT/modules
-cp $SRC/xoops-*/extras/mainfile.php $WEBROOT
-rm -rf $SRC/xoops-*
+tar -zxf $SRC/XoopsCore*.tar.gz -C $SRC
+cp -a $SRC/XoopsCore*/htdocs $WEBROOT
+cp -TdR $SRC/XoopsCore*/extras/modules $WEBROOT/modules
+cp $SRC/XoopsCore*/extras/mainfile.php $WEBROOT
+rm -rf $SRC/XoopsCore*
 chown -R root:root $WEBROOT
 chown -R www-data:www-data $WEBROOT/uploads
 chown www-data:www-data $WEBROOT/mainfile.php
