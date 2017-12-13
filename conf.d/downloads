@@ -5,7 +5,7 @@ dl() {
     cd $2; curl -L -f -O $PROXY $1; cd -
 }
 
-VERSION="XOOPS%20Core%20%28stable%20releases%29/XOOPS_2.5.8/XoopsCore25-2.5.8.tar.gz"
+VERSION="XOOPS%20Core%20%28stable%20releases%29/XOOPS_2.5.9/xoops-2.5.9.tgz"
 URL="http://sourceforge.net/projects/xoops/files/$VERSION"
 
 dl $URL /usr/local/src

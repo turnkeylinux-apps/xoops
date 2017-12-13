@@ -14,11 +14,10 @@ WEBROOT=/var/www/xoops
 XOOPS=/var/local/lib/xoops
 
 # unpack and configure
-tar -zxf $SRC/XoopsCore*.tar.gz -C $SRC
-cp -a $SRC/XoopsCore*/htdocs $WEBROOT
-cp -TdR $SRC/XoopsCore*/extras/modules $WEBROOT/modules
-cp $SRC/XoopsCore*/extras/mainfile.php $WEBROOT
-rm -rf $SRC/XoopsCore*
+tar -zxf $SRC/xoops*.tgz -C $SRC
+cp -a $SRC/xoops*/htdocs $WEBROOT
+cp $SRC/xoops*/extras/mainfile.php $WEBROOT
+rm -rf $SRC/xopps*
 chown -R root:root $WEBROOT
 chown -R www-data:www-data $WEBROOT/uploads
 chown www-data:www-data $WEBROOT/mainfile.php
@@ -37,8 +36,8 @@ a2ensite xoops
 a2enmod rewrite
 
 # start services
-/etc/init.d/mysql start
-/etc/init.d/apache2 start
+service mysql start
+service apache2 start
 
 # setup the database
 MYSQL_BATCH="mysql --user=root --password=$MYSQL_PASS --batch"
@@ -106,6 +105,6 @@ chmod 440 $WEBROOT/mainfile.php
 chmod 440 $XOOPS/data/data/secure.php
 
 # stop services
-/etc/init.d/mysql stop
-/etc/init.d/apache2 stop
+service mysql stop
+service apache2 stop
 
