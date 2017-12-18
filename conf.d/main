@@ -14,11 +14,10 @@ WEBROOT=/var/www/xoops
 XOOPS=/var/local/lib/xoops
 
 # unpack and configure
-tar -zxf $SRC/XoopsCore*.tar.gz -C $SRC
-cp -a $SRC/XoopsCore*/htdocs $WEBROOT
-cp -TdR $SRC/XoopsCore*/extras/modules $WEBROOT/modules
-cp $SRC/XoopsCore*/extras/mainfile.php $WEBROOT
-rm -rf $SRC/XoopsCore*
+tar -zxf $SRC/xoops*.tgz -C $SRC
+cp -a $SRC/xoops*/htdocs $WEBROOT
+cp $SRC/xoops*/extras/mainfile.php $WEBROOT
+rm -rf $SRC/xopps*
 chown -R root:root $WEBROOT
 chown -R www-data:www-data $WEBROOT/uploads
 chown www-data:www-data $WEBROOT/mainfile.php
@@ -37,8 +36,8 @@ a2ensite xoops
 a2enmod rewrite
 
 # start services
-/etc/init.d/mysql start
-/etc/init.d/apache2 start
+service mysql start
+service apache2 start
 
 # setup the database
 MYSQL_BATCH="mysql --user=root --password=$MYSQL_PASS --batch"
@@ -66,16 +65,16 @@ $CURL ${URL}/page_configsave.php
 sleep 20
 $CURL ${URL}/page_tablescreate.php
 sleep 20
-$CURL ${URL}/page_siteinit.php
-sleep 5
 $CURL ${URL}/page_siteinit.php --data "adminname=$ADMIN_NAME&adminmail=$XMAIL&adminpass=$ADMIN_PASS&adminpass2=$ADMIN_PASS&generated_pw="
-sleep 1
+sleep 10
 $CURL ${URL}/page_tablesfill.php
 sleep 10
-$CURL ${URL}/page_configsite.php
 $CURL ${URL}/page_configsite.php --data "sitename=TurnKey+XOOPS+Site&slogan=Just+Use+it%21&conf_ids%5B%5D=1&conf_ids%5B%5D=2&meta_keywords=xoops%2C+web+applications%2C+web+2.0%2C+sns%2C+news%2C+technology%2C+headlines%2C+linux%2C+software%2C+download%2C+downloads%2C+free%2C+community%2C+forum%2C+bulletin+board%2C+bbs%2C+php%2C+survey%2C+polls%2C+kernel%2C+comment%2C+comments%2C+portal%2C+odp%2C+open+source%2C+opensource%2C+FreeSoftware%2C+gnu%2C+gpl%2C+license%2C+Unix%2C+*nix%2C+mysql%2C+sql%2C+database%2C+databases%2C+web+site%2C+blog%2C+wiki%2C+module%2C+modules%2C+theme%2C+themes%2C+cms%2C+content+management&meta_description=XOOPS+is+a+dynamic+Object+Oriented+based+open+source+portal+script+written+in+PHP.&meta_author=XOOPS&meta_copyright=Copyright+%40+2001-2012&conf_ids%5B%5D=1&conf_ids%5B%5D=2&conf_ids%5B%5D=38&conf_ids%5B%5D=51&conf_ids%5B%5D=49&conf_ids%5B%5D=50&allow_register=1&conf_ids%5B%5D=1&conf_ids%5B%5D=2&conf_ids%5B%5D=38&conf_ids%5B%5D=51&conf_ids%5B%5D=49&conf_ids%5B%5D=50&conf_ids%5B%5D=56"
-$CURL ${URL}/page_theme.php --data "theme_set=zetagenesis&conf_ids%5B%5D=7"
+sleep 10
+$CURL ${URL}/page_theme.php --data "theme_set=xbootstrap&conf_ids%5B%5D=7"
 $CURL ${URL}/page_moduleinstaller.php --data "modules%5Bpm%5D=1&modules%5Bprofile%5D=1&modules%5Bprotector%5D=1"
+sleep 20
+$CURL ${URL}/page_moduleinstaller.php 
 $CURL ${URL}/page_end.php
 
 rm -f /tmp/cookie
@@ -106,6 +105,6 @@ chmod 440 $WEBROOT/mainfile.php
 chmod 440 $XOOPS/data/data/secure.php
 
 # stop services
-/etc/init.d/mysql stop
-/etc/init.d/apache2 stop
+service mysql stop
+service apache2 stop
 
