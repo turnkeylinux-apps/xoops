@@ -13,11 +13,13 @@ SRC=/usr/local/src
 WEBROOT=/var/www/xoops
 XOOPS=/var/local/lib/xoops
 
+VERSION=v2.5.9
+
 # unpack and configure
-tar -zxf $SRC/xoops*.tgz -C $SRC
-cp -a $SRC/xoops*/htdocs $WEBROOT
-cp $SRC/xoops*/extras/mainfile.php $WEBROOT
-rm -rf $SRC/xopps*
+tar -zxf $SRC/$VERSION.tar.gz -C $SRC
+cp -a $SRC/XoopsCore*/htdocs $WEBROOT
+cp $SRC/XoopsCore*/extras/mainfile.php $WEBROOT
+rm -rf $SRC/XoopsCore*
 chown -R root:root $WEBROOT
 chown -R www-data:www-data $WEBROOT/uploads
 chown www-data:www-data $WEBROOT/mainfile.php
@@ -58,11 +60,11 @@ CURL="curl -c /tmp/cookie -b /tmp/cookie"
 $CURL ${URL}/index.php -H 'Cookie: xo_install_lang=english' --data 'lang=english'
 $CURL ${URL}/page_start.php
 $CURL ${URL}/page_modcheck.php
-$CURL ${URL}/page_pathsettings.php --data "root=$XROOT&data=$XDATA&lib=$XLIB&URL=http%3A%2F%2F127.0.0.1"
+$CURL ${URL}/page_pathsettings.php --data "root=$XROOT&data=$XDATA&lib=$XLIB&URL=http%3A%2F%2F127.0.0.1&COOKIE_DOMAIN"
 $CURL ${URL}/page_dbconnection.php --data "DB_TYPE=mysql&DB_HOST=localhost&DB_USER=$DB_USER&DB_PASS=$DB_PASS&DB_PCONNECT=1"
 $CURL ${URL}/page_dbsettings.php --data "DB_NAME=$DB_NAME&DB_PREFIX=$DB_PREFIX&DB_CHARSET=utf8&DB_COLLATION=utf8_general_ci"
 $CURL ${URL}/page_configsave.php
-sleep 20
+sleep 35
 $CURL ${URL}/page_tablescreate.php
 sleep 20
 $CURL ${URL}/page_siteinit.php --data "adminname=$ADMIN_NAME&adminmail=$XMAIL&adminpass=$ADMIN_PASS&adminpass2=$ADMIN_PASS&generated_pw="
