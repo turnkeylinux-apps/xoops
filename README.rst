@@ -15,6 +15,10 @@ and on top of that:
    
    - Installed from upstream source code to /var/www/xoops
 
+     **Security note**: Updates to XOOPS may require supervision so
+     they **ARE NOT** configured to install automatically. See "Upgrading
+     from previous versions" section of the `Xoops release notes`_.
+
 - SSL support out of the box.
 - `Adminer`_ administration frontend for MySQL (listening on port
   12322 - uses SSL).
@@ -30,6 +34,7 @@ Credentials *(passwords set at first boot)*
 -  XOOPS: username **admin**
 
 
-.. _XOOPS: http://xoops.org/
+.. _XOOPS: https://xoops.org/
 .. _TurnKey Core: https://www.turnkeylinux.org/core
-.. _Adminer: http://www.adminer.org
+.. _XOOPS release notes: https://github.com/XOOPS/XoopsCore25/blob/master/release_notes.txt
+.. _Adminer: https://www.adminer.org
