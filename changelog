@@ -1,7 +1,7 @@
 turnkey-xoops-15.0 (1) turnkey; urgency=low
 
   * Upgraded to latest upstream version of XOOPS (2.5.9).
-    [ Vlad Kuzmenko <vlad.work.here@gmail.com> ]
+    [ Vlad Kuzmenko <vlad@turnkeylinux.org> ]
 
   * Install Adminer directly from stretch/main repo
 
