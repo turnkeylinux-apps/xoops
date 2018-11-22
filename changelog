@@ -1,7 +1,14 @@
+turnkey-xoops-15.1 (1) turnkey; urgency=low
+
+  * Rebuild to resolve inadvertent removal of mariadb during sec-updates
+    - part of #1246.
+
+ -- Jeremy Davis <jeremy@turnkeylinux.org>  Thu, 22 Nov 2018 16:02:14 +1100
+
 turnkey-xoops-15.0 (1) turnkey; urgency=low
 
   * Upgraded to latest upstream version of XOOPS (2.5.9).
-    [ Vlad Kuzmenko <vlad@turnkeylinux.org> ]
+    [ Vlad Kuzmenko ]
 
   * Install Adminer directly from stretch/main repo
 
