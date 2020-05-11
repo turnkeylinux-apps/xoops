@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """Set Xoops admin password and email
 
 Option:
@@ -18,16 +18,16 @@ from mysqlconf import MySQL
 
 def usage(s=None):
     if s:
-        print >> sys.stderr, "Error:", s
-    print >> sys.stderr, "Syntax: %s [options]" % sys.argv[0]
-    print >> sys.stderr, __doc__
+        print("Error:", s, file=sys.stderr)
+    print("Syntax: %s [options]" % sys.argv[0], file=sys.stderr)
+    print(__doc__, file=sys.stderr)
     sys.exit(1)
 
 def main():
     try:
         opts, args = getopt.gnu_getopt(sys.argv[1:], "h",
                                        ['help', 'pass=', 'email='])
-    except getopt.GetoptError, e:
+    except getopt.GetoptError as e:
         usage(e)
 
     password = ""
@@ -57,12 +57,12 @@ def main():
 
     inithooks_cache.write('APP_EMAIL', email)
 
-    hash = hashlib.md5(password).hexdigest()
+    hash = hashlib.md5(password.encode('utf8')).hexdigest()
 
     m = MySQL()
-    m.execute('UPDATE xoops.xoops_users SET pass=\"%s\" WHERE uname=\"admin\";' % hash)
-    m.execute('UPDATE xoops.xoops_users SET email=\"%s\" WHERE uname=\"admin\";' % email)
-    m.execute('UPDATE xoops.xoops_config SET conf_value=\"%s\" WHERE conf_name=\"adminmail\";' % email)
+    m.execute('UPDATE xoops.xoops_users SET pass=%s WHERE uname=\"admin\";', (hash,))
+    m.execute('UPDATE xoops.xoops_users SET email=%s WHERE uname=\"admin\";', (email,))
+    m.execute('UPDATE xoops.xoops_config SET conf_value=%s WHERE conf_name=\"adminmail\";', (email,))
 
 
 if __name__ == "__main__":
