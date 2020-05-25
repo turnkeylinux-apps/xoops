@@ -13,7 +13,7 @@ SRC=/usr/local/src
 WEBROOT=/var/www/xoops
 XOOPS=/var/local/lib/xoops
 
-VERSION=v2.5.9
+VERSION=v2.5.10
 
 # unpack and configure
 tar -zxf $SRC/$VERSION.tar.gz -C $SRC
@@ -91,14 +91,16 @@ $MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_newblocks V
 
 $MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_block_module_link VALUES ('$BLOCK_ID', '-1')"
 
-$MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_group_permission VALUES ('', '1', '$BLOCK_ID', '1', 'block_read');"
-$MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_group_permission VALUES ('', '2', '$BLOCK_ID', '1', 'block_read');"
-$MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_group_permission VALUES ('', '3', '$BLOCK_ID', '1', 'block_read');"
+$MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_group_permission VALUES (NULL, '1', '$BLOCK_ID', '1', 'block_read');"
+$MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_group_permission VALUES (NULL, '2', '$BLOCK_ID', '1', 'block_read');"
+$MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_group_permission VALUES (NULL, '3', '$BLOCK_ID', '1', 'block_read');"
 
 # remove hardcoded IP
-$MYSQL_BATCH --database=$DB_NAME --execute "UPDATE ${DB_PREFIX}_banner SET imageurl=\"/images/banners/xoops_flashbanner2.swf\" WHERE bid=\"1\";"
-$MYSQL_BATCH --database=$DB_NAME --execute "UPDATE ${DB_PREFIX}_banner SET imageurl=\"/images/banners/xoops_banner_2.gif\" WHERE bid=\"2\";"
-$MYSQL_BATCH --database=$DB_NAME --execute "UPDATE ${DB_PREFIX}_banner SET imageurl=\"/images/banners/banner.swf\" WHERE bid=\"3\";"
+$MYSQL_BATCH --database=$DB_NAME --execute "UPDATE ${DB_PREFIX}_banner SET imageurl=\"/images/banners/xoops_banner_2.gif\" WHERE bid=\"1\";"
+$MYSQL_BATCH --database=$DB_NAME --execute "UPDATE ${DB_PREFIX}_banner SET imageurl=\"/images/banners/xoopsifyIt.gif\" WHERE bid=\"2\";"
+# remove broken flash banners
+$MYSQL_BATCH --database=$DB_NAME --execute "DELETE FROM ${DB_PREFIX}_banner WHERE bid=\"3\";"
+$MYSQL_BATCH --database=$DB_NAME --execute "DELETE FROM ${DB_PREFIX}_banner WHERE bid=\"4\";"
 
 sed -i "s|XOOPS_URL.*|XOOPS_URL', '');|g" $WEBROOT/mainfile.php
 
