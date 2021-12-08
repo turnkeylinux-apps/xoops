@@ -1,3 +1,11 @@
+turnkey-xoops-17.0 (1) turnkey; urgency=low
+
+  * Updated all relevant Debian packages to Bullseye/11 versions
+
+  * Includes PHP 7.4.
+
+ -- Stefan Davis <stefan@turnkeylinux.org>  Wed, 08 Dec 2021 03:05:17 +0000
+
 turnkey-xoops-16.1 (1) turnkey; urgency=low
 
   * Rebuilt on latest debian buster.
