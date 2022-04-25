@@ -9,11 +9,11 @@ Option:
 
 import sys
 import getopt
-import inithooks_cache
 import subprocess
 import hashlib
 
-from dialog_wrapper import Dialog
+from libinithooks import inithooks_cache
+from libinithooks.dialog_wrapper import Dialog
 from mysqlconf import MySQL
 
 def usage(s=None):
