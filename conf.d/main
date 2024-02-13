@@ -20,17 +20,12 @@ tar -zxf $SRC/$VERSION.tar.gz -C $SRC
 cp -a $SRC/XoopsCore*/htdocs $WEBROOT
 cp $SRC/XoopsCore*/extras/mainfile.php $WEBROOT
 rm -rf $SRC/XoopsCore*
-chown -R root:root $WEBROOT
-chown -R www-data:www-data $WEBROOT/uploads
-chown www-data:www-data $WEBROOT/mainfile.php
-chown www-data:www-data $WEBROOT/include/license.php
 
 mkdir -p $XOOPS
 mv $WEBROOT/xoops_lib $XOOPS/lib
 mv $WEBROOT/xoops_data $XOOPS/data
-chown -R www-data:www-data $XOOPS/data/caches
-chown -R www-data:www-data $XOOPS/data/data
-chown -R www-data:www-data $XOOPS/lib/modules/protector/configs/
+
+chown -R www-data:www-data $WEBROOT $XOOPS
 
 # configure apache
 a2dissite 000-default
@@ -105,6 +100,14 @@ $MYSQL_BATCH --database=$DB_NAME --execute "DELETE FROM ${DB_PREFIX}_banner WHER
 sed -i "s|XOOPS_URL.*|XOOPS_URL', '');|g" $WEBROOT/mainfile.php
 
 # secure sensitive files
+chown -R root:root $WEBROOT $XOOPS
+chown -R www-data:www-data $WEBROOT/uploads
+chown www-data:www-data $WEBROOT/mainfile.php
+chown www-data:www-data $WEBROOT/include/license.php
+chown -R www-data:www-data $XOOPS/data/caches
+chown -R www-data:www-data $XOOPS/data/data
+chown -R www-data:www-data $XOOPS/lib/modules/protector/configs/
+
 chmod 440 $WEBROOT/mainfile.php
 chmod 440 $XOOPS/data/data/secure.php
 
