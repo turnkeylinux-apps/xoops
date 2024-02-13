@@ -1,3 +1,15 @@
+turnkey-xoops-18.0 (1) turnkey; urgency=low
+
+  * Upgraded to latest upstream version of XOOPS - 2.5.11.
+
+  * Updated all relevant Debian packages to Bookworm/12 versions; including
+    PHP 8.2.
+
+  * Note: Please refer to turnkey-core's changelog for changes common to all
+    appliances. Here we only describe changes specific to this appliance.
+
+ -- Anton Pyrogovskyi <anton@turnkeylinux.org>  Tue, 13 Feb 2024 15:24:17 +0100
+
 turnkey-xoops-17.1 (1) turnkey; urgency=low
 
   * Updated all Debian packages to latest.
