@@ -108,6 +108,8 @@ chown -R www-data:www-data $XOOPS/data/caches
 chown -R www-data:www-data $XOOPS/data/data
 chown -R www-data:www-data $XOOPS/lib/modules/protector/configs/
 
+chown -R www-data:www-data $XOOPS/data/protector/
+
 chmod 440 $WEBROOT/mainfile.php
 chmod 440 $XOOPS/data/data/secure.php
 
