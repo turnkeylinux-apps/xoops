@@ -1,0 +1,186 @@
+#!/bin/bash
+set -euo pipefail
+
+APP_ROOT=/var/www/xoops
+DATA_ROOT=/var/local/lib/xoops
+SOURCE_FILE=/usr/local/share/turnkey-xoops/source
+RELEASE_API=https://api.github.com/repos/XOOPS/XoopsCore27/releases/latest
+UPSTREAM_REPO=https://github.com/XOOPS/XoopsCore27.git
+DB_NAME=xoops
+
+usage() {
+    echo "usage: turnkey-xoops-update --check | --apply [--dry-run]" >&2
+    exit 2
+}
+
+source_value() {
+    local key=$1
+    sed -n "s/^${key}=//p" "$SOURCE_FILE" | head -n 1
+}
+
+[[ $# -ge 1 && $# -le 2 ]] || usage
+mode=$1
+dry_run=false
+case "$mode" in
+    --check)
+        [[ $# -eq 1 ]] || usage
+        ;;
+    --apply)
+        if [[ $# -eq 2 ]]; then
+            [[ $2 = --dry-run ]] || usage
+            dry_run=true
+        fi
+        ;;
+    *)
+        usage
+        ;;
+esac
+
+[[ -r $SOURCE_FILE && -r $APP_ROOT/include/version.php ]] || {
+    echo "XOOPS installation provenance is unavailable" >&2
+    exit 1
+}
+
+installed=$(source_value version)
+installed_commit=$(source_value commit)
+runtime=$(php -r 'require $argv[1]; echo XOOPS_VERSION;' \
+    "$APP_ROOT/include/version.php")
+[[ $installed =~ ^2\.7\.[0-9]+$ ]] || {
+    echo "Installed XOOPS source version is invalid" >&2
+    exit 1
+}
+[[ $installed_commit =~ ^[0-9a-f]{40}$ ]] || {
+    echo "Installed XOOPS source commit is invalid" >&2
+    exit 1
+}
+[[ $runtime == "XOOPS $installed"* ]] || {
+    echo "XOOPS runtime version differs from its source record" >&2
+    exit 1
+}
+
+release_json=$(curl -fsSL "$RELEASE_API")
+tag=$(php -r '
+    $release = json_decode(stream_get_contents(STDIN), true, 512, JSON_THROW_ON_ERROR);
+    if (($release["draft"] ?? true) || ($release["prerelease"] ?? true)) {
+        exit(1);
+    }
+    $tag = $release["tag_name"] ?? "";
+    if (!preg_match("/^v2\\.7\\.[0-9]+$/", $tag)) {
+        exit(1);
+    }
+    echo $tag;
+' <<<"$release_json")
+latest=${tag#v}
+
+candidate=$(git ls-remote "$UPSTREAM_REPO" "refs/tags/$tag^{}" \
+    | awk 'NR == 1 { print $1 }')
+if [[ -z $candidate ]]; then
+    candidate=$(git ls-remote "$UPSTREAM_REPO" "refs/tags/$tag" \
+        | awk 'NR == 1 { print $1 }')
+fi
+[[ $candidate =~ ^[0-9a-f]{40}$ ]] || {
+    echo "The official XOOPS release tag could not be resolved" >&2
+    exit 1
+}
+
+status=update-available
+if [[ $installed = "$latest" && $installed_commit = "$candidate" ]]; then
+    status=up-to-date
+fi
+
+if [[ $mode = --check ]]; then
+    printf 'installed=%s\ninstalled_commit=%s\nruntime=%s\n' \
+        "$installed" "$installed_commit" "$runtime"
+    printf 'latest=%s\ncandidate=%s\ntag=%s\n' "$latest" "$candidate" "$tag"
+    printf 'channel=official-xoops-core27-stable\nstatus=%s\n' "$status"
+    exit 0
+fi
+
+if $dry_run; then
+    printf 'mode=apply-dry-run\ntarget=%s\ncandidate=%s\ntag=%s\n' \
+        "$latest" "$candidate" "$tag"
+    printf 'verified=official-xoops-release-tag\nstatus=%s\n' "$status"
+    printf 'upgrade_path=/upgrade/\n'
+    exit 0
+fi
+
+[[ $EUID -eq 0 ]] || {
+    echo "--apply must run as root" >&2
+    exit 1
+}
+
+if [[ $status = up-to-date ]]; then
+    echo "XOOPS $installed is already current"
+    exit 0
+fi
+
+stage=$(mktemp -d /var/tmp/turnkey-xoops-update.XXXXXX)
+cleanup() {
+    rm -rf "$stage"
+}
+trap cleanup EXIT
+
+archive="$stage/$candidate.tar.gz"
+curl -fsSL "https://github.com/XOOPS/XoopsCore27/archive/$candidate.tar.gz" \
+    -o "$archive"
+archive_sha256=$(sha256sum "$archive" | awk '{ print $1 }')
+tar -xzf "$archive" -C "$stage"
+release_root="$stage/XoopsCore27-$candidate"
+[[ -d $release_root/htdocs && -d $release_root/upgrade ]] || {
+    echo "The official XOOPS archive has an unexpected layout" >&2
+    exit 1
+}
+grep -Fq "XOOPS $latest" "$release_root/htdocs/include/version.php" || {
+    echo "The official XOOPS archive version differs from its release tag" >&2
+    exit 1
+}
+
+backup_dir=/var/backups/turnkey-xoops
+backup_id=$(date -u +%Y%m%dT%H%M%SZ)
+install -d -m 0700 "$backup_dir"
+mysqldump --single-transaction "$DB_NAME" \
+    | gzip -c > "$backup_dir/xoops-$backup_id.sql.gz"
+tar -C / -czf "$backup_dir/xoops-$backup_id-files.tar.gz" \
+    var/www/xoops var/local/lib/xoops
+
+tar -C "$release_root/htdocs" \
+    --exclude=./mainfile.php \
+    --exclude=./uploads \
+    --exclude=./xoops_lib \
+    --exclude=./xoops_data \
+    -cf - . | tar -C "$APP_ROOT" -xf -
+tar -C "$release_root/htdocs/xoops_lib" -cf - . \
+    | tar -C "$DATA_ROOT/lib" -xf -
+tar -C "$release_root/htdocs/xoops_data" \
+    --exclude=./caches \
+    --exclude=./data/secure.php \
+    --exclude=./logs \
+    --exclude=./protector \
+    -cf - . | tar -C "$DATA_ROOT/data" -xf -
+cp -a "$release_root/upgrade" "$APP_ROOT/upgrade"
+
+chown -R root:root "$APP_ROOT" "$DATA_ROOT"
+chown -R www-data:www-data "$APP_ROOT/uploads"
+chown -R www-data:www-data "$DATA_ROOT/data/caches"
+chown -R www-data:www-data "$DATA_ROOT/data/data"
+chown -R www-data:www-data "$DATA_ROOT/data/logs"
+chown -R www-data:www-data "$DATA_ROOT/data/protector"
+chown -R www-data:www-data "$DATA_ROOT/lib/modules/protector/configs"
+chown root:www-data "$APP_ROOT/mainfile.php" "$DATA_ROOT/data/data/secure.php"
+chmod 0440 "$APP_ROOT/mainfile.php" "$DATA_ROOT/data/data/secure.php"
+
+updated_runtime=$(php -r 'require $argv[1]; echo XOOPS_VERSION;' \
+    "$APP_ROOT/include/version.php")
+cat > "$SOURCE_FILE" <<EOF
+version=$latest
+commit=$candidate
+archive_sha256=$archive_sha256
+archive_url=https://github.com/XOOPS/XoopsCore27/archive/$candidate.tar.gz
+runtime_version=$updated_runtime
+channel=official-xoops-core27-stable
+EOF
+chmod 0644 "$SOURCE_FILE"
+
+printf 'prepared=%s\ncommit=%s\ntag=%s\n' "$latest" "$candidate" "$tag"
+printf 'backup=%s\nupgrade_path=/upgrade/\n' "$backup_id"
+echo "Complete the supervised database and module upgrade at /upgrade/."

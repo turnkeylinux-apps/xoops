@@ -1,13 +1,16 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
-dl() {
-    [ "$FAB_HTTP_PROXY" ] && PROXY="--proxy $FAB_HTTP_PROXY"
-    cd $2; curl -L -f -O $PROXY $1; cd -
-}
+set -x
 
+VERSION=2.7.3
+COMMIT=00fff34c11fd4bee606e734d3bccf52d36fe0fda
+SHA256=b49d935116352434a60e5dae93efce356d9e5f360ad92bc72dcc69d7ab82b8cb
+URL="https://github.com/XOOPS/XoopsCore27/archive/$COMMIT.tar.gz"
+ARCHIVE="/usr/local/src/$COMMIT.tar.gz"
 
-VERSION="v2.5.11"
-URL="https://github.com/XOOPS/XoopsCore25/archive/$VERSION.tar.gz"
-
-dl $URL /usr/local/src
-
+curl_args=(-fsSL)
+if [ -n "${FAB_HTTP_PROXY:-}" ]; then
+    curl_args+=(--proxy "$FAB_HTTP_PROXY")
+fi
+curl "${curl_args[@]}" "$URL" -o "$ARCHIVE"
+echo "$SHA256  $ARCHIVE" | sha256sum --check --status

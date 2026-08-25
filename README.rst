@@ -11,13 +11,16 @@ support.
 This appliance includes all the standard features in `TurnKey Core`_,
 and on top of that:
 
-- XOOPS configurations:
+- XOOPS 2.7 configuration:
    
    - Installed from upstream source code to /var/www/xoops
+   - Pinned to the official stable release commit and archive digest.
+   - ``turnkey-xoops-update`` checks the official XOOPS 2.7 stable channel
+     and prepares supervised upgrades without replacing site data.
 
      **Security note**: Updates to XOOPS may require supervision so
      they **ARE NOT** configured to install automatically. See "Upgrading
-     from previous versions" section of the `Xoops release notes`_.
+     from previous versions" section of the `XOOPS release notes`_.
 
 - SSL support out of the box.
 - `Adminer`_ administration frontend for MySQL (listening on port
@@ -36,5 +39,5 @@ Credentials *(passwords set at first boot)*
 
 .. _XOOPS: https://xoops.org/
 .. _TurnKey Core: https://www.turnkeylinux.org/core
-.. _XOOPS release notes: https://github.com/XOOPS/XoopsCore25/blob/master/release_notes.txt
+.. _XOOPS release notes: https://github.com/XOOPS/XoopsCore27/blob/master/release_notes.txt
 .. _Adminer: https://www.adminer.org

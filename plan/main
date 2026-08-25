@@ -1,12 +1,10 @@
 #include <turnkey/base>
 #include <turnkey/lamp>
 
+git
 php-gd
 php-cli
 php-curl
 php-intl
 php-mbstring
 php-xml
-
-unzip
-
