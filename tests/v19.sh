@@ -7,6 +7,7 @@ set -euo pipefail
 APP_ROOT=/var/www/xoops
 SOURCE_FILE=/usr/local/share/turnkey-xoops/source
 BASE_URL=https://127.0.0.1
+DB_NAME=xoops
 
 fail() {
     echo "FAIL: $*" >&2
