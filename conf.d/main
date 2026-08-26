@@ -59,7 +59,7 @@ XLIB=${XOOPS//\//%2F}%2Flib
 
 URL=http://127.0.0.1/install
 COOKIE=/tmp/xoops-install-cookie
-CURL=(curl -fsS -c "$COOKIE" -b "$COOKIE")
+CURL=(curl -fsS -o /dev/null -c "$COOKIE" -b "$COOKIE")
 
 "${CURL[@]}" "$URL/index.php" -H 'Cookie: xo_install_lang=english' --data 'lang=english'
 "${CURL[@]}" "$URL/page_start.php"
