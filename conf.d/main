@@ -22,7 +22,6 @@ SOURCE_DIR="$SRC/XoopsCore27-$COMMIT"
 tar -zxf "$SRC/$COMMIT.tar.gz" -C "$SRC"
 install -d "$WEBROOT"
 cp -a "$SOURCE_DIR/htdocs/." "$WEBROOT/"
-cp "$WEBROOT/mainfile.dist.php" "$WEBROOT/mainfile.php"
 
 install -d "$XOOPS"
 mv "$WEBROOT/xoops_lib" "$XOOPS/lib"
