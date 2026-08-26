@@ -43,7 +43,7 @@ esac
 
 installed=$(source_value version)
 installed_commit=$(source_value commit)
-runtime=$(php -r 'require $argv[1]; echo XOOPS_VERSION;' \
+runtime=$(php -r 'define("XOOPS_ROOT_PATH", dirname($argv[1], 2)); require $argv[1]; echo XOOPS_VERSION;' \
     "$APP_ROOT/include/version.php")
 [[ $installed =~ ^2\.7\.[0-9]+$ ]] || {
     echo "Installed XOOPS source version is invalid" >&2
@@ -169,7 +169,7 @@ chown -R www-data:www-data "$DATA_ROOT/lib/modules/protector/configs"
 chown root:www-data "$APP_ROOT/mainfile.php" "$DATA_ROOT/data/data/secure.php"
 chmod 0440 "$APP_ROOT/mainfile.php" "$DATA_ROOT/data/data/secure.php"
 
-updated_runtime=$(php -r 'require $argv[1]; echo XOOPS_VERSION;' \
+updated_runtime=$(php -r 'define("XOOPS_ROOT_PATH", dirname($argv[1], 2)); require $argv[1]; echo XOOPS_VERSION;' \
     "$APP_ROOT/include/version.php")
 cat > "$SOURCE_FILE" <<EOF
 version=$latest

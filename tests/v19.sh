@@ -41,7 +41,7 @@ recorded_runtime=$(source_value runtime_version)
     || fail "unexpected XOOPS archive digest"
 [[ $channel = official-xoops-core27-stable ]] || fail "unexpected XOOPS channel"
 
-runtime=$(php -r 'require $argv[1]; echo XOOPS_VERSION;' \
+runtime=$(php -r 'define("XOOPS_ROOT_PATH", dirname($argv[1], 2)); require $argv[1]; echo XOOPS_VERSION;' \
     "$APP_ROOT/include/version.php")
 [[ $runtime = "$recorded_runtime" ]] || fail "runtime version differs from provenance"
 [[ $runtime == "XOOPS $version"* ]] || fail "runtime version differs from release tag"

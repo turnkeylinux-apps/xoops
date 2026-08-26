@@ -124,7 +124,7 @@ unset DB_PASS ADMIN_PASS MYSQL_BATCH MYSQL_ADMIN
 set -x
 
 # Record the exact upstream identity installed in the appliance.
-RUNTIME_VERSION=$(php -r 'require $argv[1]; echo XOOPS_VERSION;' \
+RUNTIME_VERSION=$(php -r 'define("XOOPS_ROOT_PATH", dirname($argv[1], 2)); require $argv[1]; echo XOOPS_VERSION;' \
     "$WEBROOT/include/version.php")
 install -d /usr/local/share/turnkey-xoops
 cat > /usr/local/share/turnkey-xoops/source <<EOF
