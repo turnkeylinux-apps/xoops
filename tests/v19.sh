@@ -103,7 +103,7 @@ curl "${curl_args[@]}" "$BASE_URL/modules/system/admin.php" \
     --data-urlencode 'template=' \
     --data-urlencode 'dirname=' \
     --data-urlencode 'name=' \
-    --data-urlencode 'side=5' \
+    --data-urlencode 'side=0' \
     --data-urlencode 'weight=0' \
     --data-urlencode 'visible=1' \
     --data-urlencode 'modules[]=-1' \

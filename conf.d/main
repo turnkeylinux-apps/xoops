@@ -102,7 +102,7 @@ INSERT INTO ${DB_PREFIX}_newblocks
      template, bcachetime, last_modified)
 VALUES
     (0, 0, '', 'Custom Block (HTML)', 'Welcome to TurnKey XOOPS', '$WELCOME',
-     5, 0, 1, 'C', 'H', 1, '', '', '', '', '', 0, UNIX_TIMESTAMP());
+     0, 0, 1, 'C', 'H', 1, '', '', '', '', '', 0, UNIX_TIMESTAMP());
 SET @block_id = LAST_INSERT_ID();
 INSERT INTO ${DB_PREFIX}_block_module_link (block_id, module_id)
 VALUES (@block_id, -1);
