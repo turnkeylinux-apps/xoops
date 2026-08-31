@@ -1,118 +1,153 @@
-#!/bin/sh -ex
+#!/bin/bash -e
+
+set -x
 
 DB_NAME=xoops
 DB_USER=xoops
 DB_PREFIX=xoops
-DB_PASS=$(mcookie)
 
 ADMIN_NAME=admin
-ADMIN_PASS=turnkey
 ADMIN_MAIL=admin@example.com
 
 SRC=/usr/local/src
 WEBROOT=/var/www/xoops
 XOOPS=/var/local/lib/xoops
 
-VERSION=v2.5.11
+VERSION=2.7.3
+COMMIT=00fff34c11fd4bee606e734d3bccf52d36fe0fda
+ARCHIVE_SHA256=b49d935116352434a60e5dae93efce356d9e5f360ad92bc72dcc69d7ab82b8cb
+SOURCE_DIR="$SRC/XoopsCore27-$COMMIT"
 
-# unpack and configure
-tar -zxf $SRC/$VERSION.tar.gz -C $SRC
-cp -a $SRC/XoopsCore*/htdocs $WEBROOT
-cp $SRC/XoopsCore*/extras/mainfile.php $WEBROOT
-rm -rf $SRC/XoopsCore*
+# Unpack and configure the official XOOPS release.
+tar -zxf "$SRC/$COMMIT.tar.gz" -C "$SRC"
+install -d "$WEBROOT"
+cp -a "$SOURCE_DIR/htdocs/." "$WEBROOT/"
 
-mkdir -p $XOOPS
-mv $WEBROOT/xoops_lib $XOOPS/lib
-mv $WEBROOT/xoops_data $XOOPS/data
+install -d "$XOOPS"
+mv "$WEBROOT/xoops_lib" "$XOOPS/lib"
+mv "$WEBROOT/xoops_data" "$XOOPS/data"
+rm -rf "$SOURCE_DIR"
 
-chown -R www-data:www-data $WEBROOT $XOOPS
+chown -R www-data:www-data "$WEBROOT" "$XOOPS"
 
-# configure apache
+# Configure Apache and start the services required by the web installer.
 a2dissite 000-default
 a2ensite xoops
 a2enmod rewrite
-
-# start services
 service mysql start
 service apache2 start
 
-# setup the database
-MYSQL_BATCH="mysql --user=root --password=$MYSQL_PASS --batch"
-MYSQL_ADMIN="mysqladmin --user=root --password=$MYSQL_PASS"
+# Keep generated credentials and installer requests out of the build trace.
+# Errexit remains active throughout this section.
+set +x
+DB_PASS=$(mcookie)
+ADMIN_PASS=turnkey
+MYSQL_BATCH=(mysql --user=root "--password=${MYSQL_PASS:-}" --batch)
+MYSQL_ADMIN=(mysqladmin --user=root "--password=${MYSQL_PASS:-}")
 
-$MYSQL_ADMIN create $DB_NAME
-$MYSQL_BATCH --execute "grant all privileges on $DB_NAME.* to $DB_USER@localhost identified by '$DB_PASS'; flush privileges;"
+"${MYSQL_ADMIN[@]}" create "$DB_NAME"
+"${MYSQL_BATCH[@]}" <<EOF
+CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';
+GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';
+FLUSH PRIVILEGES;
+EOF
 
-# curl based install
-XMAIL=$(echo $ADMIN_MAIL | sed s/@/%40/)
-XROOT=$(echo $WEBROOT | sed "s/\//%2F/g")
-XDATA=$(echo $XOOPS/data | sed "s/\//%2F/g")
-XLIB=$(echo $XOOPS/lib | sed "s/\//%2F/g")
+XMAIL=${ADMIN_MAIL/@/%40}
+XROOT=${WEBROOT//\//%2F}
+XDATA=${XOOPS//\//%2F}%2Fdata
+XLIB=${XOOPS//\//%2F}%2Flib
 
-URL="http://127.0.0.1/install"
-CURL="curl -c /tmp/cookie -b /tmp/cookie"
+URL=http://127.0.0.1/install
+COOKIE=/tmp/xoops-install-cookie
+CURL=(curl -fsS -o /dev/null -c "$COOKIE" -b "$COOKIE")
 
-$CURL ${URL}/index.php -H 'Cookie: xo_install_lang=english' --data 'lang=english'
-$CURL ${URL}/page_start.php
-$CURL ${URL}/page_modcheck.php
-$CURL ${URL}/page_pathsettings.php --data "root=$XROOT&data=$XDATA&lib=$XLIB&URL=http%3A%2F%2F127.0.0.1&COOKIE_DOMAIN"
-$CURL ${URL}/page_dbconnection.php --data "DB_TYPE=mysql&DB_HOST=localhost&DB_USER=$DB_USER&DB_PASS=$DB_PASS&DB_PCONNECT=1"
-$CURL ${URL}/page_dbsettings.php --data "DB_NAME=$DB_NAME&DB_PREFIX=$DB_PREFIX&DB_CHARSET=utf8&DB_COLLATION=utf8_general_ci"
-$CURL ${URL}/page_configsave.php
+"${CURL[@]}" "$URL/index.php" -H 'Cookie: xo_install_lang=english' --data 'lang=english'
+"${CURL[@]}" "$URL/page_start.php"
+"${CURL[@]}" "$URL/page_modcheck.php"
+"${CURL[@]}" "$URL/page_pathsettings.php" \
+    --data "root=$XROOT&data=$XDATA&lib=$XLIB&URL=http%3A%2F%2F127.0.0.1&COOKIE_DOMAIN"
+"${CURL[@]}" "$URL/page_dbconnection.php" \
+    --data "DB_TYPE=mysql&DB_HOST=localhost&DB_USER=$DB_USER&DB_PASS=$DB_PASS&DB_PCONNECT=0"
+"${CURL[@]}" "$URL/page_dbsettings.php" \
+    --data "DB_NAME=$DB_NAME&DB_PREFIX=$DB_PREFIX&DB_CHARSET=utf8mb4&DB_COLLATION=utf8mb4_unicode_ci"
+"${CURL[@]}" "$URL/page_configsave.php"
 sleep 35
-$CURL ${URL}/page_tablescreate.php
+"${CURL[@]}" "$URL/page_tablescreate.php"
 sleep 20
-$CURL ${URL}/page_siteinit.php --data "adminname=$ADMIN_NAME&adminmail=$XMAIL&adminpass=$ADMIN_PASS&adminpass2=$ADMIN_PASS&generated_pw="
+"${CURL[@]}" "$URL/page_siteinit.php" \
+    --data "adminname=$ADMIN_NAME&adminmail=$XMAIL&adminpass=$ADMIN_PASS&adminpass2=$ADMIN_PASS&generated_pw="
 sleep 10
-$CURL ${URL}/page_tablesfill.php
+"${CURL[@]}" "$URL/page_tablesfill.php"
 sleep 10
-$CURL ${URL}/page_configsite.php --data "sitename=TurnKey+XOOPS+Site&slogan=Just+Use+it%21&conf_ids%5B%5D=1&conf_ids%5B%5D=2&meta_keywords=xoops%2C+web+applications%2C+web+2.0%2C+sns%2C+news%2C+technology%2C+headlines%2C+linux%2C+software%2C+download%2C+downloads%2C+free%2C+community%2C+forum%2C+bulletin+board%2C+bbs%2C+php%2C+survey%2C+polls%2C+kernel%2C+comment%2C+comments%2C+portal%2C+odp%2C+open+source%2C+opensource%2C+FreeSoftware%2C+gnu%2C+gpl%2C+license%2C+Unix%2C+*nix%2C+mysql%2C+sql%2C+database%2C+databases%2C+web+site%2C+blog%2C+wiki%2C+module%2C+modules%2C+theme%2C+themes%2C+cms%2C+content+management&meta_description=XOOPS+is+a+dynamic+Object+Oriented+based+open+source+portal+script+written+in+PHP.&meta_author=XOOPS&meta_copyright=Copyright+%40+2001-2012&conf_ids%5B%5D=1&conf_ids%5B%5D=2&conf_ids%5B%5D=38&conf_ids%5B%5D=51&conf_ids%5B%5D=49&conf_ids%5B%5D=50&allow_register=1&conf_ids%5B%5D=1&conf_ids%5B%5D=2&conf_ids%5B%5D=38&conf_ids%5B%5D=51&conf_ids%5B%5D=49&conf_ids%5B%5D=50&conf_ids%5B%5D=56"
+"${CURL[@]}" "$URL/page_configsite.php" \
+    --data "sitename=TurnKey+XOOPS+Site&slogan=Just+Use+it%21&conf_ids%5B%5D=1&conf_ids%5B%5D=2&meta_keywords=xoops%2C+web+applications%2C+portal%2C+cms%2C+content+management&meta_description=XOOPS+is+a+dynamic+Object+Oriented+open+source+portal+platform.&meta_author=XOOPS&meta_copyright=Copyright+%40+2001-2026&allow_register=1&conf_ids%5B%5D=38&conf_ids%5B%5D=51&conf_ids%5B%5D=49&conf_ids%5B%5D=50&conf_ids%5B%5D=56"
 sleep 10
-$CURL ${URL}/page_theme.php --data "theme_set=xbootstrap&conf_ids%5B%5D=7"
-$CURL ${URL}/page_moduleinstaller.php --data "modules%5Bpm%5D=1&modules%5Bprofile%5D=1&modules%5Bprotector%5D=1"
+"${CURL[@]}" "$URL/page_theme.php" \
+    --data 'theme_set=xbootstrap5&conf_ids%5B%5D=7'
+"${CURL[@]}" "$URL/page_moduleinstaller.php" \
+    --data 'modules%5Bpm%5D=1&modules%5Bprofile%5D=1&modules%5Bprotector%5D=1'
 sleep 20
-$CURL ${URL}/page_moduleinstaller.php 
-$CURL ${URL}/page_end.php
+"${CURL[@]}" "$URL/page_moduleinstaller.php"
+"${CURL[@]}" "$URL/page_end.php"
 
-rm -f /tmp/cookie
-rm -rf $WEBROOT/install
+rm -f "$COOKIE"
+rm -rf "$WEBROOT/install"
 
-# create welcome block
-BLOCK_ID="13"
-DATE="1339947200"
-WELCOME='<p>Lets get you started...</p><ol><li>Log in as <b>admin</b> and visit the <a href=\"/admin.php\">administration dashboard</a> to customize your site.</li><li>When ready, delete this welcome block and create some new ones.</li></ol><p>For more information, check out the <a href=\"https://www.turnkeylinux.org/xoops\">release notes</a> and the <a href=\"http://xoops.org/modules\">online documentation</p>.'
+# Add one visible custom block that gives a new administrator a starting point.
+WELCOME='<p>Lets get you started...</p><ol><li>Log in as <b>admin</b> and visit the <a href="/admin.php">administration dashboard</a> to customize your site.</li><li>When ready, delete this welcome block and create some new ones.</li></ol><p>For more information, visit the <a href="https://xoops.org/">XOOPS project</a>.</p>'
+"${MYSQL_BATCH[@]}" --database="$DB_NAME" <<EOF
+INSERT INTO ${DB_PREFIX}_newblocks
+    (mid, func_num, options, name, title, content, side, weight, visible,
+     block_type, c_type, isactive, dirname, func_file, show_func, edit_func,
+     template, bcachetime, last_modified)
+VALUES
+    (0, 0, '', 'Custom Block (HTML)', 'Welcome to TurnKey XOOPS', '$WELCOME',
+     0, 0, 1, 'C', 'H', 1, '', '', '', '', '', 0, UNIX_TIMESTAMP());
+SET @block_id = LAST_INSERT_ID();
+INSERT INTO ${DB_PREFIX}_block_module_link (block_id, module_id)
+VALUES (@block_id, -1);
+INSERT INTO ${DB_PREFIX}_group_permission
+    (gperm_groupid, gperm_itemid, gperm_modid, gperm_name)
+VALUES
+    (1, @block_id, 1, 'block_read'),
+    (2, @block_id, 1, 'block_read'),
+    (3, @block_id, 1, 'block_read');
+UPDATE ${DB_PREFIX}_banner
+SET imageurl='/images/banners/xoops_banner_2.gif' WHERE bid=1;
+UPDATE ${DB_PREFIX}_banner
+SET imageurl='/images/banners/xoopsifyIt.gif' WHERE bid=2;
+DELETE FROM ${DB_PREFIX}_banner WHERE bid IN (3, 4);
+EOF
 
-$MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_newblocks VALUES ('$BLOCK_ID', '0', '0', '', 'Custom Block \(HTML\)', 'Welcome to TurnKey Xoops', '$WELCOME', '5', '0', '1', 'C', 'H', '1', '', '', '', '', '', '0', '$DATE');"
+sed -i "s|XOOPS_URL.*|XOOPS_URL', '');|g" "$WEBROOT/mainfile.php"
+unset DB_PASS ADMIN_PASS MYSQL_BATCH MYSQL_ADMIN
+set -x
 
-$MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_block_module_link VALUES ('$BLOCK_ID', '-1')"
+# Record the exact upstream identity installed in the appliance.
+RUNTIME_VERSION=$(php -r 'define("XOOPS_ROOT_PATH", dirname($argv[1], 2)); require $argv[1]; echo XOOPS_VERSION;' \
+    "$WEBROOT/include/version.php")
+install -d /usr/local/share/turnkey-xoops
+cat > /usr/local/share/turnkey-xoops/source <<EOF
+version=$VERSION
+commit=$COMMIT
+archive_sha256=$ARCHIVE_SHA256
+archive_url=https://github.com/XOOPS/XoopsCore27/archive/$COMMIT.tar.gz
+runtime_version=$RUNTIME_VERSION
+channel=official-xoops-core27-stable
+EOF
 
-$MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_group_permission VALUES (NULL, '1', '$BLOCK_ID', '1', 'block_read');"
-$MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_group_permission VALUES (NULL, '2', '$BLOCK_ID', '1', 'block_read');"
-$MYSQL_BATCH --database=$DB_NAME --execute "INSERT INTO ${DB_PREFIX}_group_permission VALUES (NULL, '3', '$BLOCK_ID', '1', 'block_read');"
+# Keep application code immutable while retaining only documented writable data.
+chown -R root:root "$WEBROOT" "$XOOPS"
+chown -R www-data:www-data "$WEBROOT/uploads"
+chown -R www-data:www-data "$XOOPS/data/caches"
+chown -R www-data:www-data "$XOOPS/data/data"
+chown -R www-data:www-data "$XOOPS/data/logs"
+chown -R www-data:www-data "$XOOPS/data/protector"
+chown -R www-data:www-data "$XOOPS/lib/modules/protector/configs"
+chown root:www-data "$WEBROOT/mainfile.php"
+chown root:www-data "$XOOPS/data/data/secure.php"
+chmod 0440 "$WEBROOT/mainfile.php"
+chmod 0440 "$XOOPS/data/data/secure.php"
 
-# remove hardcoded IP
-$MYSQL_BATCH --database=$DB_NAME --execute "UPDATE ${DB_PREFIX}_banner SET imageurl=\"/images/banners/xoops_banner_2.gif\" WHERE bid=\"1\";"
-$MYSQL_BATCH --database=$DB_NAME --execute "UPDATE ${DB_PREFIX}_banner SET imageurl=\"/images/banners/xoopsifyIt.gif\" WHERE bid=\"2\";"
-# remove broken flash banners
-$MYSQL_BATCH --database=$DB_NAME --execute "DELETE FROM ${DB_PREFIX}_banner WHERE bid=\"3\";"
-$MYSQL_BATCH --database=$DB_NAME --execute "DELETE FROM ${DB_PREFIX}_banner WHERE bid=\"4\";"
-
-sed -i "s|XOOPS_URL.*|XOOPS_URL', '');|g" $WEBROOT/mainfile.php
-
-# secure sensitive files
-chown -R root:root $WEBROOT $XOOPS
-chown -R www-data:www-data $WEBROOT/uploads
-chown www-data:www-data $WEBROOT/mainfile.php
-chown www-data:www-data $WEBROOT/include/license.php
-chown -R www-data:www-data $XOOPS/data/caches
-chown -R www-data:www-data $XOOPS/data/data
-chown -R www-data:www-data $XOOPS/lib/modules/protector/configs/
-
-chown -R www-data:www-data $XOOPS/data/protector/
-
-chmod 440 $WEBROOT/mainfile.php
-chmod 440 $XOOPS/data/data/secure.php
-
-# stop services
 service mysql stop
 service apache2 stop

@@ -1,3 +1,18 @@
+turnkey-xoops-19.0 (1) turnkey; urgency=low
+
+  * Rebase the appliance on Debian 13/Trixie.
+
+  * Install XOOPS 2.7.3 from its pinned official release commit with archive
+    integrity verification.
+
+  * Preserve the existing firstboot administrator and database credential
+    contract while storing the administrator password with PHP's current
+    password hash.
+
+  * Add a supervised updater for the official XOOPS 2.7 stable channel.
+
+ -- TurnKey Linux Developers <admin@turnkeylinux.org>  Tue, 25 Aug 2026 00:00:00 +0000
+
 turnkey-xoops-18.0 (1) turnkey; urgency=low
 
   * Upgraded to latest upstream version of XOOPS - 2.5.11.
@@ -270,4 +285,3 @@ turnkey-xoops-12.0 (1) turnkey; urgency=low
     appliances. Here we only describe changes specific to this appliance.
 
  -- Alon Swartz <alon@turnkeylinux.org>  Wed, 01 Aug 2012 08:00:00 +0200
-

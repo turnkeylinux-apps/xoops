@@ -2,7 +2,7 @@
 """Set Xoops admin password and email
 
 Option:
-    --pass=     unless provided, will ask interactively
+    --pass-stdin read the password from standard input
     --email=    unless provided, will ask interactively
 
 """
@@ -10,7 +10,6 @@ Option:
 import sys
 import getopt
 import subprocess
-import hashlib
 
 from libinithooks import inithooks_cache
 from libinithooks.dialog_wrapper import Dialog
@@ -26,21 +25,31 @@ def usage(s=None):
 def main():
     try:
         opts, args = getopt.gnu_getopt(sys.argv[1:], "h",
-                                       ['help', 'pass=', 'email='])
+                                       ['help', 'pass=', 'pass-stdin', 'email='])
     except getopt.GetoptError as e:
         usage(e)
 
     password = ""
+    password_stdin = False
     email = ""
     for opt, val in opts:
         if opt in ('-h', '--help'):
             usage()
         elif opt == '--pass':
             password = val
+        elif opt == '--pass-stdin':
+            password_stdin = True
         elif opt == '--email':
             email = val
 
-    if not password:
+    if password and password_stdin:
+        usage('--pass and --pass-stdin are mutually exclusive')
+
+    if password_stdin:
+        password = sys.stdin.read()
+        if not password:
+            usage('standard input did not contain a password')
+    elif not password:
         d = Dialog('TurnKey Linux - First boot configuration')
         password = d.get_password(
             "Xoops Password",
@@ -57,14 +66,26 @@ def main():
 
     inithooks_cache.write('APP_EMAIL', email)
 
-    hash = hashlib.md5(password.encode('utf8')).hexdigest()
+    password_hash = subprocess.run(
+        [
+            '/usr/bin/php',
+            '-r',
+            'echo password_hash(stream_get_contents(STDIN), PASSWORD_DEFAULT);',
+        ],
+        input=password,
+        text=True,
+        capture_output=True,
+        check=True,
+    ).stdout
+
+    if not password_hash.startswith('$'):
+        raise RuntimeError('PHP did not return a modern password hash')
 
     m = MySQL()
-    m.execute('UPDATE xoops.xoops_users SET pass=%s WHERE uname=\"admin\";', (hash,))
+    m.execute('UPDATE xoops.xoops_users SET pass=%s WHERE uname=\"admin\";', (password_hash,))
     m.execute('UPDATE xoops.xoops_users SET email=%s WHERE uname=\"admin\";', (email,))
     m.execute('UPDATE xoops.xoops_config SET conf_value=%s WHERE conf_name=\"adminmail\";', (email,))
 
 
 if __name__ == "__main__":
     main()
-
